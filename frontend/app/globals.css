@@ -1,0 +1,449 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #080808;
+  color: white;
+}
+
+
+/* -------------------------
+   PAGE
+------------------------- */
+
+.selection-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 24px 16px;
+
+  background:
+    radial-gradient(
+      circle at top,
+      #292929 0%,
+      #111111 40%,
+      #050505 100%
+    );
+}
+
+
+/* -------------------------
+   CARD
+------------------------- */
+
+.game-card {
+  width: 100%;
+  max-width: 520px;
+
+  padding: 32px 24px;
+
+  border: 1px solid #333;
+
+  border-radius: 24px;
+
+  background: #111;
+
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.6);
+}
+
+
+/* -------------------------
+   HEADER
+------------------------- */
+
+.game-header {
+  text-align: center;
+
+  margin-bottom: 32px;
+}
+
+.lock-icon {
+  font-size: 42px;
+
+  margin-bottom: 10px;
+}
+
+.game-header h1 {
+  margin: 0;
+
+  font-size: 32px;
+
+  font-weight: 800;
+
+  letter-spacing: -1px;
+}
+
+.game-header p {
+  margin-top: 8px;
+
+  color: #999;
+
+  font-size: 15px;
+}
+
+
+/* -------------------------
+   SECTION
+------------------------- */
+
+.section {
+  margin-bottom: 26px;
+}
+
+.section h2 {
+  margin: 0 0 12px;
+
+  font-size: 17px;
+}
+
+
+/* -------------------------
+   OPTION GRID
+------------------------- */
+
+.option-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 10px;
+}
+
+
+/* -------------------------
+   OPTION BUTTON
+------------------------- */
+
+.option-button {
+  min-height: 100px;
+
+  border: 1px solid #333;
+
+  border-radius: 16px;
+
+  background: #191919;
+
+  color: white;
+
+  cursor: pointer;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 8px;
+
+  font-size: 14px;
+
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.option-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+
+  border-color: #777;
+
+  background: #222;
+}
+
+.option-button.selected {
+  border-color: white;
+
+  background: #2a2a2a;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(255, 255, 255, 0.15);
+}
+
+.option-button.unavailable {
+  opacity: 0.25;
+
+  cursor: not-allowed;
+
+  text-decoration: line-through;
+}
+
+.option-icon {
+  font-size: 34px;
+}
+
+
+/* -------------------------
+   PREVIEW
+------------------------- */
+
+.selection-preview {
+  margin-bottom: 26px;
+
+  padding: 20px;
+
+  text-align: center;
+
+  border: 1px dashed #555;
+
+  border-radius: 16px;
+
+  background: #181818;
+}
+
+.selection-preview p {
+  margin: 0 0 8px;
+
+  color: #999;
+
+  font-size: 13px;
+}
+
+.preview-combination {
+  font-size: 40px;
+
+  margin-bottom: 8px;
+}
+
+.selection-preview strong {
+  font-size: 16px;
+}
+
+
+/* -------------------------
+   NAME INPUT
+------------------------- */
+
+input {
+  width: 100%;
+
+  height: 52px;
+
+  padding: 0 16px;
+
+  border: 1px solid #444;
+
+  border-radius: 12px;
+
+  outline: none;
+
+  background: #191919;
+
+  color: white;
+
+  font-size: 16px;
+}
+
+input::placeholder {
+  color: #777;
+}
+
+input:focus {
+  border-color: white;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 255, 255, 0.08);
+}
+
+
+/* -------------------------
+   ERROR
+------------------------- */
+
+.error-message {
+  margin-bottom: 18px;
+
+  padding: 13px 15px;
+
+  border-radius: 10px;
+
+  background: #351515;
+
+  border: 1px solid #6d2929;
+
+  color: #ffb0b0;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+}
+
+
+/* -------------------------
+   SUBMIT
+------------------------- */
+
+.submit-button {
+  width: 100%;
+
+  height: 56px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  background: white;
+
+  color: black;
+
+  font-size: 16px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.submit-button:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+}
+
+
+/* -------------------------
+   PRIVACY
+------------------------- */
+
+.privacy {
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 18px;
+
+  color: #888;
+
+  font-size: 12px;
+
+  line-height: 1.5;
+
+  text-align: center;
+}
+
+
+/* -------------------------
+   SUCCESS
+------------------------- */
+
+.success-card {
+  text-align: center;
+
+  padding: 48px 24px;
+}
+
+.success-icon {
+  width: 72px;
+
+  height: 72px;
+
+  margin: 0 auto 20px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: white;
+
+  color: black;
+
+  font-size: 38px;
+
+  font-weight: 800;
+}
+
+.success-card h1 {
+  margin: 0 0 10px;
+
+  font-size: 32px;
+}
+
+.success-card p {
+  color: #aaa;
+
+  margin-bottom: 24px;
+}
+
+.private-message {
+  padding: 18px;
+
+  border-radius: 14px;
+
+  background: #191919;
+
+  color: #aaa;
+
+  font-size: 14px;
+
+  line-height: 1.7;
+}
+
+
+/* -------------------------
+   MOBILE
+------------------------- */
+
+@media (max-width: 480px) {
+
+  .selection-page {
+    padding: 12px;
+    align-items: flex-start;
+  }
+
+  .game-card {
+    margin-top: 12px;
+
+    padding: 26px 18px;
+
+    border-radius: 20px;
+  }
+
+  .game-header h1 {
+    font-size: 28px;
+  }
+
+  .option-button {
+    min-height: 90px;
+  }
+
+  .option-icon {
+    font-size: 29px;
+  }
+}
+
+@import "tailwindcss";
+
