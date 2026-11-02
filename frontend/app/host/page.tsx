@@ -969,17 +969,21 @@ export default function HostDashboard() {
 
       if (wheelTimerRef.current) {
         clearTimeout(wheelTimerRef.current);
-        wh  useEffect(() => {
+        wheelTimerRef.current = null;
+      }
+    };
+  }, [authReady, hostAuthenticated]);
+
+  // Animate only when a NEW spin event is observed. Guess submissions and
+  // ordinary dashboard refreshes must not replay an old spin.
+  useEffect(() => {
     if (!game) return;
 
-    // Establish a baseline on initial load so an old spin is never replayed
-    // just because a contestant submits a guess or the player list refreshes.
     if (lastObservedSpinNumberRef.current === null) {
       lastObservedSpinNumberRef.current = game.spin_number;
       return;
     }
 
-    // A spin event exists only when the backend spin counter increases.
     if (game.spin_number > lastObservedSpinNumberRef.current) {
       lastObservedSpinNumberRef.current = game.spin_number;
       pendingSpinNumberRef.current = game.spin_number;
@@ -996,8 +1000,6 @@ export default function HostDashboard() {
 
     if (winnerIndex === -1) return;
 
-    // Consume the spin event before starting animation to prevent replay
-    // when state updates or polling refreshes the dashboard.
     pendingSpinNumberRef.current = null;
     setSpinning(true);
     setSelectedPlayer(null);
@@ -1026,27 +1028,6 @@ export default function HostDashboard() {
     activePlayers,
     spinning,
   ]);
-
-
-e ||
-              null
-          );
-
-
-          wheelTimerRef.current =
-            null;
-
-        },
-        10000
-      );
-
-  }, [
-    game?.spin_number,
-    game?.current_player?.id,
-    activePlayers,
-    spinning,
-  ]);
-
 
   // =======================================================
   // GENERIC HOST POST REQUEST
