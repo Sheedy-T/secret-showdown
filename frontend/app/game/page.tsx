@@ -121,8 +121,10 @@ export default function GamePage() {
 // wheel animation multiple times.
 const spinningRef = useRef(false);
 
-// Remember the latest backend spin that this browser has animated.
-const lastSpinNumberRef = useRef<number>(0);
+// Track spin events observed after this page mounted. A spin already in
+// the game state on first load is historical and must not replay after a guess.
+const lastObservedSpinNumberRef = useRef<number | null>(null);
+const pendingSpinNumberRef = useRef<number | null>(null);
 
 // Keep track of the latest wheel rotation without
 // depending on React state inside asynchronous callbacks.
@@ -304,14 +306,27 @@ async function loadGame() {
     );
   }, [activePlayers, me]);
 
-  // Start the wheel only when the same spin is visible in both
-  // the shared game state and the local contestant list.
-  // This prevents a polling race where /api/game arrives before /api/players.
+  // Animate only a NEW spin event observed while this page is open.
+// A guess changes player/result state, but does not create a spin event.
+  // If the game is already running when the page opens, baseline the current
+  // spin number instead of replaying that old spin on a later contestant update.
   useEffect(() => {
-    if (!game || !game.game_started || !game.current_player) return;
-    if (game.spin_number <= lastSpinNumberRef.current) return;
-    if (spinningRef.current) return;
-    if (activePlayers.length < 2) return;
+    if (!game) return;
+
+    if (lastObservedSpinNumberRef.current === null) {
+      lastObservedSpinNumberRef.current = game.spin_number;
+      return;
+    }
+
+    if (game.spin_number > lastObservedSpinNumberRef.current) {
+      lastObservedSpinNumberRef.current = game.spin_number;
+      pendingSpinNumberRef.current = game.spin_number;
+    }
+
+    if (pendingSpinNumberRef.current === null) return;
+    if (pendingSpinNumberRef.current !== game.spin_number) return;
+    if (!game.game_started || !game.current_player) return;
+    if (spinningRef.current || activePlayers.length < 2) return;
 
     const selected = activePlayers.find(
       (player) => player.id === game.current_player?.id
@@ -319,9 +334,16 @@ async function loadGame() {
 
     if (!selected) return;
 
-    lastSpinNumberRef.current = game.spin_number;
+    // Consume the event before starting the animation so a re-render cannot
+    // replay it. Only a later backend spin_number increment can spin again.
+    pendingSpinNumberRef.current = null;
     startWheelAnimation(selected.id, selected.name);
-  }, [game?.spin_number, game?.current_player?.id, activePlayers]);
+  }, [
+    game?.spin_number,
+    game?.current_player?.id,
+    game?.game_started,
+    activePlayers,
+  ]);
 
   // =====================================================
   // WHEEL ANIMATION

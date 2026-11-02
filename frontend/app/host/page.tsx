@@ -215,8 +215,13 @@ export default function HostDashboard() {
   const [selectedPlayer, setSelectedPlayer] =
     useState<string | null>(null);
 
-  const lastSpinNumberRef =
-    useRef(0);
+  // Ignore the spin already present when this page first loads.
+  // Only a new backend spin_number increment should animate the wheel.
+  const lastObservedSpinNumberRef =
+    useRef<number | null>(null);
+
+  const pendingSpinNumberRef =
+    useRef<number | null>(null);
 
   const rotationRef =
     useRef(0);
@@ -967,130 +972,62 @@ export default function HostDashboard() {
         wheelTimerRef.current = null;
       }
     };
-
   }, [authReady, hostAuthenticated]);
 
-
-  // =======================================================
-  // WHEEL ANIMATION
-  // =======================================================
-
+  // Animate only when a NEW spin event is observed. Guess submissions and
+  // ordinary dashboard refreshes must not replay an old spin.
   useEffect(() => {
+    if (!game) return;
 
-    if (!game?.game_started)
-      return;
-
-
-    if (!game.current_player)
-      return;
-
-
-    if (
-      game.spin_number <=
-      lastSpinNumberRef.current
-    ) {
-
+    if (lastObservedSpinNumberRef.current === null) {
+      lastObservedSpinNumberRef.current = game.spin_number;
       return;
     }
 
-
-    if (
-      spinning ||
-      activePlayers.length < 2
-    ) {
-
-      return;
+    if (game.spin_number > lastObservedSpinNumberRef.current) {
+      lastObservedSpinNumberRef.current = game.spin_number;
+      pendingSpinNumberRef.current = game.spin_number;
     }
 
+    if (pendingSpinNumberRef.current === null) return;
+    if (pendingSpinNumberRef.current !== game.spin_number) return;
+    if (!game.game_started || !game.current_player) return;
+    if (spinning || activePlayers.length < 2) return;
 
-    const winnerIndex =
-      activePlayers.findIndex(
-        (player) =>
-          player.id ===
-          game.current_player?.id
-      );
-
-
-    if (winnerIndex === -1) {
-      return;
-    }
-
-
-    lastSpinNumberRef.current =
-      game.spin_number;
-
-
-    setSpinning(true);
-
-    setSelectedPlayer(null);
-
-
-    const segmentAngle =
-      360 /
-      activePlayers.length;
-
-
-    const targetAngle =
-      360 -
-      (
-        winnerIndex *
-          segmentAngle +
-        segmentAngle / 2
-      );
-
-
-    const finalRotation =
-      rotationRef.current +
-      8 * 360 +
-      targetAngle;
-
-
-    rotationRef.current =
-      finalRotation;
-
-
-    setRotation(
-      finalRotation
+    const winnerIndex = activePlayers.findIndex(
+      (player) => player.id === game.current_player?.id
     );
 
+    if (winnerIndex === -1) return;
 
-    if (
-      wheelTimerRef.current
-    ) {
+    pendingSpinNumberRef.current = null;
+    setSpinning(true);
+    setSelectedPlayer(null);
 
-      clearTimeout(
-        wheelTimerRef.current
-      );
+    const segmentAngle = 360 / activePlayers.length;
+    const targetAngle =
+      360 - (winnerIndex * segmentAngle + segmentAngle / 2);
+    const finalRotation = rotationRef.current + 8 * 360 + targetAngle;
+
+    rotationRef.current = finalRotation;
+    setRotation(finalRotation);
+
+    if (wheelTimerRef.current) {
+      clearTimeout(wheelTimerRef.current);
     }
 
-
-    wheelTimerRef.current =
-      setTimeout(
-        () => {
-
-          setSpinning(false);
-
-
-          setSelectedPlayer(
-            game.current_player?.name ||
-              null
-          );
-
-
-          wheelTimerRef.current =
-            null;
-
-        },
-        10000
-      );
-
+    wheelTimerRef.current = setTimeout(() => {
+      setSpinning(false);
+      setSelectedPlayer(game.current_player?.name || null);
+      wheelTimerRef.current = null;
+    }, 10000);
   }, [
     game?.spin_number,
     game?.current_player?.id,
+    game?.game_started,
     activePlayers,
     spinning,
   ]);
-
 
   // =======================================================
   // GENERIC HOST POST REQUEST
