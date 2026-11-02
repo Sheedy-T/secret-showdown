@@ -215,8 +215,13 @@ export default function HostDashboard() {
   const [selectedPlayer, setSelectedPlayer] =
     useState<string | null>(null);
 
-  const lastSpinNumberRef =
-    useRef(0);
+  // Ignore the spin already present when this page first loads.
+  // Only a new backend spin_number increment should animate the wheel.
+  const lastObservedSpinNumberRef =
+    useRef<number | null>(null);
+
+  const pendingSpinNumberRef =
+    useRef<number | null>(null);
 
   const rotationRef =
     useRef(0);
@@ -964,115 +969,66 @@ export default function HostDashboard() {
 
       if (wheelTimerRef.current) {
         clearTimeout(wheelTimerRef.current);
-        wheelTimerRef.current = null;
-      }
-    };
+        wh  useEffect(() => {
+    if (!game) return;
 
-  }, [authReady, hostAuthenticated]);
-
-
-  // =======================================================
-  // WHEEL ANIMATION
-  // =======================================================
-
-  useEffect(() => {
-
-    if (!game?.game_started)
-      return;
-
-
-    if (!game.current_player)
-      return;
-
-
-    if (
-      game.spin_number <=
-      lastSpinNumberRef.current
-    ) {
-
+    // Establish a baseline on initial load so an old spin is never replayed
+    // just because a contestant submits a guess or the player list refreshes.
+    if (lastObservedSpinNumberRef.current === null) {
+      lastObservedSpinNumberRef.current = game.spin_number;
       return;
     }
 
-
-    if (
-      spinning ||
-      activePlayers.length < 2
-    ) {
-
-      return;
+    // A spin event exists only when the backend spin counter increases.
+    if (game.spin_number > lastObservedSpinNumberRef.current) {
+      lastObservedSpinNumberRef.current = game.spin_number;
+      pendingSpinNumberRef.current = game.spin_number;
     }
 
+    if (pendingSpinNumberRef.current === null) return;
+    if (pendingSpinNumberRef.current !== game.spin_number) return;
+    if (!game.game_started || !game.current_player) return;
+    if (spinning || activePlayers.length < 2) return;
 
-    const winnerIndex =
-      activePlayers.findIndex(
-        (player) =>
-          player.id ===
-          game.current_player?.id
-      );
-
-
-    if (winnerIndex === -1) {
-      return;
-    }
-
-
-    lastSpinNumberRef.current =
-      game.spin_number;
-
-
-    setSpinning(true);
-
-    setSelectedPlayer(null);
-
-
-    const segmentAngle =
-      360 /
-      activePlayers.length;
-
-
-    const targetAngle =
-      360 -
-      (
-        winnerIndex *
-          segmentAngle +
-        segmentAngle / 2
-      );
-
-
-    const finalRotation =
-      rotationRef.current +
-      8 * 360 +
-      targetAngle;
-
-
-    rotationRef.current =
-      finalRotation;
-
-
-    setRotation(
-      finalRotation
+    const winnerIndex = activePlayers.findIndex(
+      (player) => player.id === game.current_player?.id
     );
 
+    if (winnerIndex === -1) return;
 
-    if (
-      wheelTimerRef.current
-    ) {
+    // Consume the spin event before starting animation to prevent replay
+    // when state updates or polling refreshes the dashboard.
+    pendingSpinNumberRef.current = null;
+    setSpinning(true);
+    setSelectedPlayer(null);
 
-      clearTimeout(
-        wheelTimerRef.current
-      );
+    const segmentAngle = 360 / activePlayers.length;
+    const targetAngle =
+      360 - (winnerIndex * segmentAngle + segmentAngle / 2);
+    const finalRotation = rotationRef.current + 8 * 360 + targetAngle;
+
+    rotationRef.current = finalRotation;
+    setRotation(finalRotation);
+
+    if (wheelTimerRef.current) {
+      clearTimeout(wheelTimerRef.current);
     }
 
+    wheelTimerRef.current = setTimeout(() => {
+      setSpinning(false);
+      setSelectedPlayer(game.current_player?.name || null);
+      wheelTimerRef.current = null;
+    }, 10000);
+  }, [
+    game?.spin_number,
+    game?.current_player?.id,
+    game?.game_started,
+    activePlayers,
+    spinning,
+  ]);
 
-    wheelTimerRef.current =
-      setTimeout(
-        () => {
 
-          setSpinning(false);
-
-
-          setSelectedPlayer(
-            game.current_player?.name ||
+e ||
               null
           );
 
